@@ -9,10 +9,10 @@
       "value": "logic-customer-sync"
     },
     "sqlConnectionString": {
-      "value": "YOUR_SQL_SERVER.database.windows.net"
+      "value": "sql-expense-mgmt-xyz.database.windows.net"
     },
     "sqlDatabaseName": {
-      "value": "YOUR_DATABASE_NAME"
+      "value": "ExpenseManagementDB"
     },
     "oracleConnectionString": {
       "value": "YOUR_ORACLE_SERVER:1521/YOUR_SERVICE_NAME"
