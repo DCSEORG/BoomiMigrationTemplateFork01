@@ -1,1 +1,10 @@
+<Profile id="prof-out-01" name="CustomerOutputProfile" type="XML">
+  <Elements>
+    <Element name="Customer">
+      <Element name="CustomerId" type="integer"/>
+      <Element name="Name" type="string"/>
+      <Element name="Email" type="string"/>
+    </Element>
+  </Elements>
+</Profile>
 
