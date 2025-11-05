@@ -1,0 +1,22 @@
+# Generated ARM templates from Bicep
+infrastructure/*.json
+!infrastructure/parameters.json
+!infrastructure/workflow-definition.json
+
+# Environment files with secrets
+.env
+*.env
+
+# Azure CLI
+.azure/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
