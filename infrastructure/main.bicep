@@ -92,7 +92,7 @@ resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
         }
       }
       triggers: {
-        'When_a_item_is_created': {
+        When_an_item_is_created: {
           type: 'ApiConnection'
           inputs: {
             host: {
@@ -101,6 +101,8 @@ resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
               }
             }
             method: 'get'
+            // Note: 'default' refers to the default dataset in SQL Server connector API
+            // This is required by the Azure Logic Apps connector specification
             path: '/v2/datasets/@{encodeURIComponent(encodeURIComponent(\'default\'))},@{encodeURIComponent(encodeURIComponent(\'default\'))}/tables/@{encodeURIComponent(encodeURIComponent(\'${sqlTableName}\'))}/onnewitems'
             queries: {
               incomingBlobMetadata: 'None'
@@ -114,7 +116,7 @@ resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
         }
       }
       actions: {
-        'Transform_Data': {
+        Transform_Data: {
           type: 'Compose'
           inputs: {
             id: '@triggerBody()?[\'CustomerId\']'
@@ -123,7 +125,7 @@ resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
           }
           runAfter: {}
         }
-        'Insert_into_Oracle': {
+        Insert_into_Oracle: {
           type: 'ApiConnection'
           inputs: {
             host: {
@@ -132,6 +134,8 @@ resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
               }
             }
             method: 'post'
+            // Note: 'default' refers to the default dataset in Oracle connector API
+            // This is required by the Azure Logic Apps connector specification
             path: '/v2/datasets/@{encodeURIComponent(encodeURIComponent(\'default\'))}/tables/@{encodeURIComponent(encodeURIComponent(\'${oracleTableName}\'))}/items'
             body: '@outputs(\'Transform_Data\')'
           }
