@@ -80,12 +80,6 @@ Edit `infrastructure/parameters.json`:
   "sqlDatabaseName": {
     "value": "your-database-name"
   },
-  "sqlUsername": {
-    "value": "your-username"
-  },
-  "sqlPassword": {
-    "value": "your-password"
-  },
   "oracleConnectionString": {
     "value": "oracle-server:1521/service-name"
   },
@@ -97,6 +91,8 @@ Edit `infrastructure/parameters.json`:
   }
 }
 ```
+
+**Note**: The Logic App now uses **Azure AD (Entra ID) authentication** with Managed Identity for SQL Server. You no longer need to provide SQL username and password.
 
 ### Optional Configuration
 
@@ -110,14 +106,50 @@ export LOCATION="westus2"
 
 ## 📊 Post-Deployment
 
-After deployment, authorize the API connections:
+After deployment, configure Azure AD authentication for SQL and authorize the Oracle connection:
+
+### 1. Configure SQL Database Access with Azure AD (Managed Identity)
+
+The Logic App uses a system-assigned managed identity to authenticate with SQL Server. You need to grant this identity access to your database:
+
+**Step 1**: Ensure Azure AD authentication is enabled on your SQL Server
+- Navigate to your SQL Server in the Azure Portal
+- Go to "Azure Active Directory" (or "Microsoft Entra ID") in the left menu
+- Set an Azure AD admin if not already configured
+
+**Step 2**: Grant the Logic App managed identity access to your database
+
+Connect to your SQL Database using SQL Server Management Studio, Azure Data Studio, or the Azure Portal Query Editor, and run:
+
+```sql
+-- Create a user for the Logic App managed identity
+CREATE USER [logic-customer-sync] FROM EXTERNAL PROVIDER;
+
+-- Grant necessary permissions
+ALTER ROLE db_datareader ADD MEMBER [logic-customer-sync];
+ALTER ROLE db_datawriter ADD MEMBER [logic-customer-sync];
+
+-- If you need to grant permissions on specific tables only:
+-- GRANT SELECT, INSERT, UPDATE ON dbo.Customer TO [logic-customer-sync];
+```
+
+**Step 3**: Ensure your SQL Server firewall allows Azure services
+- Go to your SQL Server → "Networking" (or "Firewall and virtual networks")
+- Enable "Allow Azure services and resources to access this server"
+
+### 2. Authorize Oracle API Connection
 
 1. Navigate to [Azure Portal](https://portal.azure.com)
 2. Go to your Resource Group
-3. Authorize SQL and Oracle connections
-4. Enable the Logic App
+3. Click on the Oracle API connection (oracle-connection)
+4. Click "Edit API connection"
+5. Provide Oracle credentials and test the connection
+6. Save the connection
 
-Detailed instructions are provided in the deployment script output.
+Alternatively, authorize from the Logic App:
+1. Open the Logic App in Azure Portal
+2. Click "API connections" in the left menu
+3. Authorize the Oracle connection
 
 ## 🔍 Monitoring
 
@@ -161,14 +193,21 @@ VALUES (1, 'John Doe', 'john.doe@example.com', 1);
 
 ### Common Issues
 
-**Problem**: API connections not authorized
-- **Solution**: Follow post-deployment steps to authorize connections
+**Problem**: Logic App cannot connect to SQL Server
+- **Solution**: 
+  1. Verify Azure AD authentication is enabled on SQL Server
+  2. Ensure the managed identity has been granted database access (see post-deployment steps)
+  3. Check that SQL Server firewall allows Azure services
+  4. Verify the SQL connection uses the correct server name and database
+
+**Problem**: "Login failed for user" error in Logic App
+- **Solution**: The managed identity may not have been granted access to the database. Run the SQL commands from the post-deployment section.
 
 **Problem**: Logic App not triggering
 - **Solution**: Check SQL table name and schema match the configuration
 
 **Problem**: Data not in Oracle
-- **Solution**: Review Logic App run history for error details
+- **Solution**: Review Logic App run history for error details and ensure Oracle connection is authorized
 
 For more troubleshooting tips, see `infrastructure/README.md`.
 

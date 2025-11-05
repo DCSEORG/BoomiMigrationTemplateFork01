@@ -36,13 +36,15 @@ The solution migrates the Boomi integration to Azure Logic Apps:
 
 - Azure CLI installed
 - Azure subscription
+- SQL Server with Azure AD authentication enabled
 - SQL Server with Customer table
 - Oracle Database with target table
 
 ## 💡 Architecture
 
 - **Azure Logic App (Consumption)** - Serverless, pay-per-use
-- **SQL Server Connector** - Triggers on new rows
+- **System-Assigned Managed Identity** - Secure authentication to SQL Server
+- **SQL Server Connector** - Triggers on new rows using Azure AD authentication
 - **Oracle Database Connector** - Inserts transformed data
 - **Built-in Data Mapping** - Replicates Boomi transformations
 
