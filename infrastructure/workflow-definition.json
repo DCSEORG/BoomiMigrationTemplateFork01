@@ -1,0 +1,62 @@
+{
+  "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "$connections": {
+      "defaultValue": {},
+      "type": "Object"
+    }
+  },
+  "triggers": {
+    "When_an_item_is_created": {
+      "type": "ApiConnection",
+      "inputs": {
+        "host": {
+          "connection": {
+            "name": "@parameters('$connections')['sql']['connectionId']"
+          }
+        },
+        "method": "get",
+        "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('default'))},@{encodeURIComponent(encodeURIComponent('default'))}/tables/@{encodeURIComponent(encodeURIComponent('[dbo].[Customer]'))}/onnewitems",
+        "queries": {
+          "incomingBlobMetadata": "None"
+        }
+      },
+      "recurrence": {
+        "frequency": "Second",
+        "interval": 60
+      },
+      "splitOn": "@triggerBody()?['value']"
+    }
+  },
+  "actions": {
+    "Transform_Data": {
+      "type": "Compose",
+      "inputs": {
+        "id": "@triggerBody()?['CustomerId']",
+        "fullName": "@triggerBody()?['Name']",
+        "emailAddress": "@triggerBody()?['Email']"
+      },
+      "runAfter": {}
+    },
+    "Insert_into_Oracle": {
+      "type": "ApiConnection",
+      "inputs": {
+        "host": {
+          "connection": {
+            "name": "@parameters('$connections')['oracle']['connectionId']"
+          }
+        },
+        "method": "post",
+        "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('default'))}/tables/@{encodeURIComponent(encodeURIComponent('[CUSTOMERS]'))}/items",
+        "body": "@outputs('Transform_Data')"
+      },
+      "runAfter": {
+        "Transform_Data": [
+          "Succeeded"
+        ]
+      }
+    }
+  },
+  "outputs": {}
+}

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "value": "eastus"
+    },
+    "logicAppName": {
+      "value": "logic-customer-sync"
+    },
+    "sqlConnectionString": {
+      "value": "YOUR_SQL_SERVER.database.windows.net"
+    },
+    "sqlDatabaseName": {
+      "value": "YOUR_DATABASE_NAME"
+    },
+    "sqlUsername": {
+      "value": "YOUR_SQL_USERNAME"
+    },
+    "sqlPassword": {
+      "value": "YOUR_SQL_PASSWORD"
+    },
+    "oracleConnectionString": {
+      "value": "YOUR_ORACLE_SERVER:1521/YOUR_SERVICE_NAME"
+    },
+    "oracleUsername": {
+      "value": "YOUR_ORACLE_USERNAME"
+    },
+    "oraclePassword": {
+      "value": "YOUR_ORACLE_PASSWORD"
+    },
+    "sqlTableName": {
+      "value": "dbo.Customer"
+    },
+    "oracleTableName": {
+      "value": "CUSTOMERS"
+    },
+    "pollingIntervalInSeconds": {
+      "value": 60
+    }
+  }
+}
