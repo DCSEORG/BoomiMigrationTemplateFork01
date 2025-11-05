@@ -14,12 +14,7 @@ param sqlConnectionString string
 @description('SQL Database name')
 param sqlDatabaseName string
 
-@description('SQL Server username')
-param sqlUsername string
 
-@description('SQL Server password')
-@secure()
-param sqlPassword string
 
 @description('Oracle Server connection string')
 @secure()
@@ -41,7 +36,7 @@ param oracleTableName string = 'CUSTOMERS'
 @description('Polling interval in seconds')
 param pollingIntervalInSeconds int = 60
 
-// SQL Server API Connection
+// SQL Server API Connection with Azure AD (Entra ID) Authentication
 resource sqlConnection 'Microsoft.Web/connections@2016-06-01' = {
   name: 'sql-connection'
   location: location
@@ -53,8 +48,7 @@ resource sqlConnection 'Microsoft.Web/connections@2016-06-01' = {
     parameterValues: {
       server: sqlConnectionString
       database: sqlDatabaseName
-      username: sqlUsername
-      password: sqlPassword
+      authType: 'managedIdentity'
     }
   }
 }
@@ -76,10 +70,13 @@ resource oracleConnection 'Microsoft.Web/connections@2016-06-01' = {
   }
 }
 
-// Logic App (Consumption)
+// Logic App (Consumption) with System-Assigned Managed Identity
 resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
   name: logicAppName
   location: location
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
     state: 'Enabled'
     definition: {
@@ -170,5 +167,6 @@ resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
 // Outputs
 output logicAppId string = logicApp.id
 output logicAppName string = logicApp.name
+output logicAppPrincipalId string = logicApp.identity.principalId
 output sqlConnectionId string = sqlConnection.id
 output oracleConnectionId string = oracleConnection.id

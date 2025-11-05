@@ -14,12 +14,6 @@
     "sqlDatabaseName": {
       "value": "YOUR_DATABASE_NAME"
     },
-    "sqlUsername": {
-      "value": "YOUR_SQL_USERNAME"
-    },
-    "sqlPassword": {
-      "value": "YOUR_SQL_PASSWORD"
-    },
     "oracleConnectionString": {
       "value": "YOUR_ORACLE_SERVER:1521/YOUR_SERVICE_NAME"
     },
