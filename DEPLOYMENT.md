@@ -77,6 +77,9 @@ Edit `infrastructure/parameters.json`:
   "sqlConnectionString": {
     "value": "your-server.database.windows.net"
   },
+  "sqlDatabaseName": {
+    "value": "your-database-name"
+  },
   "sqlUsername": {
     "value": "your-username"
   },

@@ -90,7 +90,7 @@ if [ ! -f "parameters.json" ]; then
 fi
 
 # Validate parameters file has been updated
-if grep -q "YOUR_SQL_SERVER\|YOUR_SQL_USERNAME\|YOUR_ORACLE_SERVER" parameters.json; then
+if grep -q "YOUR_SQL_SERVER\|YOUR_SQL_USERNAME\|YOUR_DATABASE_NAME\|YOUR_ORACLE_SERVER" parameters.json; then
     print_error "Parameters file contains placeholder values"
     print_info "Please update parameters.json with actual SQL and Oracle connection details"
     exit 1

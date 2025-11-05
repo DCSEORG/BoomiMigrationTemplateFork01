@@ -53,6 +53,9 @@ The solution includes:
   "sqlConnectionString": {
     "value": "your-server.database.windows.net"
   },
+  "sqlDatabaseName": {
+    "value": "your-database-name"
+  },
   "sqlUsername": {
     "value": "your-sql-username"
   },

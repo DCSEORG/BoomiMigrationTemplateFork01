@@ -24,6 +24,7 @@ Update these values before deployment:
 ```json
 {
   "sqlConnectionString": {"value": "your-server.database.windows.net"},
+  "sqlDatabaseName": {"value": "your-database-name"},
   "sqlUsername": {"value": "your-username"},
   "sqlPassword": {"value": "your-password"},
   "oracleConnectionString": {"value": "oracle:1521/service"},

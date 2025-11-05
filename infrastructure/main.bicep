@@ -11,6 +11,9 @@ param logicAppName string = 'logic-customer-sync'
 @secure()
 param sqlConnectionString string
 
+@description('SQL Database name')
+param sqlDatabaseName string
+
 @description('SQL Server username')
 param sqlUsername string
 
@@ -49,7 +52,7 @@ resource sqlConnection 'Microsoft.Web/connections@2016-06-01' = {
     }
     parameterValues: {
       server: sqlConnectionString
-      database: sqlUsername
+      database: sqlDatabaseName
       username: sqlUsername
       password: sqlPassword
     }
