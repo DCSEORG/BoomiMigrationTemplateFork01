@@ -6,18 +6,23 @@ This solution migrates the Boomi integration process to Azure Logic Apps, provid
 
 This Logic App implements the same data flow as the Boomi process:
 
-1. **Trigger**: Monitors SQL Server table for new customer records
+1. **Trigger**: Monitors SQL Server table for new customer records (using Azure AD authentication)
 2. **Transform**: Maps SQL Server fields to Oracle format
    - `CustomerId` → `id`
    - `Name` → `fullName`
    - `Email` → `emailAddress`
 3. **Action**: Inserts transformed data into Oracle Database
 
+### Security
+
+The Logic App uses a **system-assigned managed identity** to authenticate with SQL Server via Azure AD (Entra ID). This eliminates the need to manage SQL credentials and provides enhanced security through Azure's identity platform.
+
 ## Architecture
 
 The solution includes:
 - **Azure Logic App (Consumption)**: Serverless workflow orchestration
-- **SQL Server API Connection**: Connects to Azure SQL or SQL Server
+- **System-Assigned Managed Identity**: Secure Azure AD authentication for SQL Server
+- **SQL Server API Connection**: Connects to Azure SQL or SQL Server using Azure AD
 - **Oracle Database API Connection**: Connects to Oracle Database
 - **Bicep Templates**: Infrastructure as Code for deployment
 
@@ -26,7 +31,7 @@ The solution includes:
 1. **Azure CLI** installed and configured
    - Install: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli
 2. **Azure Subscription** with appropriate permissions
-3. **SQL Server** with the Customer table:
+3. **SQL Server** with Azure AD authentication enabled and the Customer table:
    ```sql
    CREATE TABLE dbo.Customer (
        CustomerId INT PRIMARY KEY,
@@ -56,12 +61,6 @@ The solution includes:
   "sqlDatabaseName": {
     "value": "your-database-name"
   },
-  "sqlUsername": {
-    "value": "your-sql-username"
-  },
-  "sqlPassword": {
-    "value": "your-sql-password"
-  },
   "oracleConnectionString": {
     "value": "your-oracle-server:1521/your-service-name"
   },
@@ -73,6 +72,8 @@ The solution includes:
   }
 }
 ```
+
+**Note**: SQL authentication now uses Azure AD (Entra ID) via Managed Identity, so SQL username and password are not required.
 
 2. (Optional) Adjust environment variables in `deploy.sh`:
    - `RESOURCE_GROUP_NAME`: Azure resource group name (default: `rg-customer-sync`)
@@ -95,19 +96,37 @@ The script will:
 
 ## Post-Deployment Steps
 
-After deployment, you need to authorize the API connections:
+After deployment, configure Azure AD authentication and authorize connections:
+
+### 1. Grant SQL Database Access to Managed Identity
+
+The Logic App uses a system-assigned managed identity to access SQL Server. Grant it database access:
+
+```sql
+-- Connect to your SQL Database as an Azure AD admin and run:
+CREATE USER [logic-customer-sync] FROM EXTERNAL PROVIDER;
+ALTER ROLE db_datareader ADD MEMBER [logic-customer-sync];
+ALTER ROLE db_datawriter ADD MEMBER [logic-customer-sync];
+```
+
+**Important**: 
+- Your SQL Server must have Azure AD authentication enabled
+- You must connect as an Azure AD admin to run these commands
+- Ensure your SQL Server firewall allows Azure services
+
+### 2. Authorize Oracle API Connection
 
 1. Go to the [Azure Portal](https://portal.azure.com)
 2. Navigate to your Resource Group
-3. Click on each API Connection (sql-connection, oracle-connection)
+3. Click on the Oracle API Connection (oracle-connection)
 4. Click "Edit API connection"
 5. Provide credentials and test the connection
 6. Save the connection
 
-Alternatively, authorize directly from the Logic App:
+Alternatively, authorize from the Logic App:
 1. Open the Logic App in Azure Portal
 2. Click "API connections" in the left menu
-3. Authorize each connection
+3. Authorize the Oracle connection
 
 ## Monitoring
 
@@ -151,19 +170,23 @@ By default, the Logic App polls for new records every 60 seconds. To change this
 ## Troubleshooting
 
 ### Connection Authorization Issues
-- Ensure you have the correct credentials for SQL Server and Oracle
-- Check network connectivity and firewall rules
-- Verify that the SQL Server allows Azure services
+- **SQL**: Ensure Azure AD authentication is enabled on SQL Server and the managed identity has been granted database access
+- **Oracle**: Check credentials and network connectivity; verify firewall rules
 
 ### Logic App Not Triggering
 - Verify the SQL table name is correct
 - Check that the table has the required columns
-- Ensure the SQL connection is authorized
+- Ensure the managed identity has read permissions on the table
 
 ### Data Not Appearing in Oracle
 - Check Oracle connection authorization
 - Verify the Oracle table schema matches the expected format
 - Review Logic App run history for error messages
+
+### "Login failed" Errors
+- The managed identity may not have database access. Run the SQL grant commands from Post-Deployment Steps
+- Verify SQL Server allows Azure services in firewall settings
+- Confirm Azure AD authentication is properly configured on SQL Server
 
 ## Cost Optimization
 

@@ -90,7 +90,7 @@ if [ ! -f "parameters.json" ]; then
 fi
 
 # Validate parameters file has been updated
-if grep -q "YOUR_SQL_SERVER\|YOUR_SQL_USERNAME\|YOUR_DATABASE_NAME\|YOUR_ORACLE_SERVER" parameters.json; then
+if grep -q "YOUR_SQL_SERVER\|YOUR_DATABASE_NAME\|YOUR_ORACLE_SERVER" parameters.json; then
     print_error "Parameters file contains placeholder values"
     print_info "Please update parameters.json with actual SQL and Oracle connection details"
     exit 1
@@ -130,22 +130,41 @@ if az deployment group create \
         --resource-group "$RESOURCE_GROUP_NAME" \
         --query properties.outputs.logicAppId.value -o tsv)
     
+    LOGIC_APP_PRINCIPAL_ID=$(az deployment group show \
+        --name "$DEPLOYMENT_NAME" \
+        --resource-group "$RESOURCE_GROUP_NAME" \
+        --query properties.outputs.logicAppPrincipalId.value -o tsv)
+    
     echo ""
     echo "=================================================="
     print_info "Deployment Summary"
     echo "=================================================="
     echo "Logic App Name: $LOGIC_APP_NAME"
     echo "Logic App ID: $LOGIC_APP_ID"
+    echo "Managed Identity Principal ID: $LOGIC_APP_PRINCIPAL_ID"
     echo "Resource Group: $RESOURCE_GROUP_NAME"
     echo ""
     print_info "You can view your Logic App in the Azure Portal:"
     echo "https://portal.azure.com/#@/resource$LOGIC_APP_ID"
     echo ""
-    print_info "To enable the Logic App, you may need to authorize the API connections:"
+    print_info "IMPORTANT: Configure Azure AD Authentication for SQL Database"
+    echo "The Logic App now uses Azure AD (Entra ID) authentication via Managed Identity."
+    echo ""
+    echo "To grant the Logic App access to your SQL Database, run these commands:"
+    echo ""
+    echo "1. Connect to your SQL Database and execute:"
+    echo "   CREATE USER [logic-customer-sync] FROM EXTERNAL PROVIDER;"
+    echo "   ALTER ROLE db_datareader ADD MEMBER [logic-customer-sync];"
+    echo "   ALTER ROLE db_datawriter ADD MEMBER [logic-customer-sync];"
+    echo ""
+    echo "2. Ensure your SQL Server has Azure AD authentication enabled."
+    echo "3. Ensure your SQL Server firewall allows Azure services."
+    echo ""
+    print_info "To authorize the Oracle API connection:"
     echo "1. Go to the Azure Portal"
     echo "2. Navigate to the Logic App"
     echo "3. Click on 'API connections' in the left menu"
-    echo "4. Authorize each connection"
+    echo "4. Authorize the Oracle connection"
     echo "=================================================="
     
 else
